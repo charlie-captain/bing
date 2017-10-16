@@ -5,8 +5,10 @@ import time
 import win32gui
 import win32con
 import os
+import shutil
 
 
+# connect to the url
 def open_url(url):
     request = urllib.request.Request(url)
     request.add_header('User-Agent',
@@ -15,6 +17,7 @@ def open_url(url):
     return response.read()
 
 
+# download image
 def find_img(response_html):
     print('正在下载图片...')
     jsons = json.loads(response_html)
@@ -24,9 +27,13 @@ def find_img(response_html):
         save_img(img['url'])
 
 
+# save picture
 def save_img(img_url):
     url_pic = 'http://cn.bing.com' + img_url
-    file_name = str(time.strftime("%Y-%m-%d", time.localtime())) + '.jpg'
+    dir_name = time.strftime("%Y-%m", time.localtime())
+    if not file_exist(dir_name):
+        os.mkdir(dir_name)
+    file_name = dir_name + '/' + str(time.strftime("%Y-%m-%d", time.localtime())) + '.jpg'
     img = open_url(url_pic)
     if img and not file_exist(file_name):
         with open(file_name, 'wb') as f:
@@ -38,11 +45,13 @@ def save_img(img_url):
         print('图片已存在.')
 
 
+# find the file
 def file_exist(file_name):
     temp = os.path.exists(file_name)
     return temp
 
 
+# change the destop
 def update_img(file_name):
     dir_name = os.path.abspath('.')
     print(dir_name)
@@ -51,6 +60,19 @@ def update_img(file_name):
     win32gui.SystemParametersInfo(win32con.SPI_SETDESKWALLPAPER, img_path, 1 + 2)
 
 
+# delete picture per month
+def del_img():
+    now_date = time.strftime("%Y-%m")
+    dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
+    print(dirs)
+    for dir in dirs:
+        if dir == '.git' or dir == '.idea':
+            continue
+        if dir != now_date:
+            shutil.rmtree(dir)
+
+
 url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
 img_response = open_url(url)
 find_img(img_response)
+del_img()

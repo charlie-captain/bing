@@ -113,40 +113,40 @@
     
         >这里删除非空文件夹用的是shutil模块,很方便
 
-    - ### 打包成EXE文件
+- ## Win10锁屏壁纸获取
+    
+    - ### winwalls.py
+        
+        简单的实现获取壁纸到Users\Pictures里, 没有做太多的判断, 比如:
+        
+        1. 是否已经存在
+        
+         
+- ## 打包成EXE文件
 
-        使用pyinstaller , 我用的是python3.6 可以直接使用
-
-        - 安装
-
-            ```
-            pip install pyinstaller
-            ```
-
-        - 打包
-
-            到需要打包的目录下打开控制台
-
-            ```
-            pyinstaller xxx.py
-            ```
-
-            参数如下:
-            ```
-            –icon=图标路径
-            -F 打包成一个exe文件
-            -w 使用窗口，无控制台
-            -c 使用控制台，无窗口
-            -D 创建一个目录，里面包含exe以及其他一些依赖性文件
-            pyinstaller -h 来查看参数
-            ```
-
-            默认可以使用
-
-            ```
-            pyinstaller -F -w -icon=xx.icon  xx.py
-            ```
-
+    - 使用pyinstaller , 我用的是python3.6   
+    
+        ```
+        pip install pyinstaller
+    
+    
+        到需要打包   
+        ```
+       pyinstaller xxx.py
+    
+        参数如下:
+        ```
+        –icon=图标路径
+        -F 打包成一个exe文件
+        -w 使用窗口，无控制台
+        -c 使用控制台，无窗口
+        -D 创建一个目录，里面包含exe以及其他一些依赖性文件
+        pyinstaller -h 来查看参数
+    
+        
+        ```
+        pyinstaller -F -w -icon=xx.icon  xx.py
+    
     - ### 计划任务实现定时更换
     
         这里就不详细说明了详情可以找下度娘, github已经设置好了,只是需要你们去设置下运行的路径.

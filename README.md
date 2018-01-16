@@ -1,10 +1,10 @@
-## 前言
+## 必应每日壁纸自动更换
+
+### 前言
 
 刚学习Python基础之后, 想写点东西来提升自己的能力.
 
-## 必应每日壁纸自动更换
-
-- ### 运行流程
+- #### 运行流程
 
     ```
     url = 'http://cn.bing.com/HPImageArchive.asp?format=js&idx=0&n=1'
@@ -15,7 +15,7 @@
 
     然后我们一步一步地走流程
     
-- ### open_url - 网络请求
+- #### open_url - 网络请求
     
     就是简单的网络请求而已
     
@@ -29,7 +29,7 @@
         return response.read()
     ```
     
-- ### find_img() - 下载文件
+- #### find_img() - 下载文件
     
     简单的文件下载处理
     ```
@@ -43,7 +43,7 @@
             save_img(img['url'])
     ```
 
-- ### save_img() - 保存文件
+- #### save_img() - 保存文件
     
     这里保存图片要说一下, 我是获取当前日期
 
@@ -71,7 +71,7 @@
             print('图片已存在.')
     ```
 
-- ### file_exist() - 是否已存在文件
+- #### file_exist() - 是否已存在文件
 
     ```
     # find the file
@@ -80,7 +80,7 @@
         return temp
     ```
     
-- ### update_img() - 更换桌面壁纸
+- #### update_img() - 更换桌面壁纸
 
     这里就是用来还桌面壁纸的,最重要还是用win32gui这个模块
     
@@ -94,7 +94,7 @@
         win32gui.SystemParametersInfo(win32con.SPI_SETDESKWALLPAPER, img_path, 1 + 2)
     ```
 
-- ### del_img() - 定时清空缓存
+- #### del_img() - 定时清空缓存
     
     删除除了这个月的其他文件夹, 也避免删除了git文件夹
     
@@ -113,7 +113,7 @@
 
     >这里删除非空文件夹用的是shutil模块,很方便
   
-- ### 打包成EXE文件
+- #### 打包成EXE文件
 
     使用pyinstaller , 我用的是python3.6 可以直接使用
     
@@ -147,12 +147,12 @@
         pyinstaller -F -w -icon=xx.icon  xx.py
         ```
         
-- ### 计划任务实现定时更换
+- #### 计划任务实现定时更换
 
     这里就不详细说明了详情可以找下度娘, github已经设置好了,只是需要你们去设置下运行的路径.
     
     好了,今天就到这了
     
-## Github
+### Github
 - [https://github.com/thatnight/bing](https://github.com/thatnight/bing)
     

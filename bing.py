@@ -59,7 +59,7 @@ def save_img(img_url):
         with open(filedir_name, 'wb') as f:
             f.write(img)
         print('图片下载成功.')
-        upload_photos()
+        #upload_photos()
     else:
         print('图片已存在.')
     print('文件完整路径为:' + fullfile_name)

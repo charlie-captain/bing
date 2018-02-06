@@ -8,7 +8,9 @@
     dist目录下的bing.exe可以直接双击使用
 - #### 开机启动
     0xRefresh.xml 为windows计划任务的方案，导入之后修改bing.exe的目录路径即可；
-
+- #### 配置文件init.ini
+    - delete：0是不开启，1是开启删除非本月文件夹
+    - upload: 同上，1是开启上传到bmob的(一般默认为0就好了)
 
 ### 具体实现
 - #### 运行流程
@@ -164,7 +166,7 @@
 
         参数如下:
         ```
-        –icon=图标路径
+        –i=图标路径
         -F 打包成一个exe文件
         -w 使用窗口，无控制台
         -c 使用控制台，无窗口
@@ -175,7 +177,7 @@
         默认可以使用
         
         ```
-        pyinstaller -F -w -icon=xx.icon  xx.py
+        pyinstaller -F -w -i=xx.icon  xx.py
         ```
         
 - #### 计划任务实现定时更换

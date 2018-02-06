@@ -8,11 +8,16 @@ import os
 import shutil
 import winwalls
 from bmob import Bmob
+import configparser
 
 filedir_name = ''
 file_name = ''
 fullfile_name = ''
+dir_name = ''
 url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
+
+is_delete = ''
+is_upload = ''
 
 
 # check has downloaded
@@ -20,6 +25,7 @@ def check():
     global filedir_name
     global file_name
     global fullfile_name
+    global dir_name
     dir_name = time.strftime("%Y-%m", time.localtime())
     if not file_exist(dir_name):
         os.mkdir(dir_name)
@@ -27,6 +33,7 @@ def check():
     filedir_name = dir_name + '\\' + file_name
     dir_name = os.path.abspath('.')
     fullfile_name = os.path.join(dir_name, filedir_name)  # 完整路径
+    init_config()
     if file_exist(filedir_name):
         return True
     return False
@@ -59,7 +66,8 @@ def save_img(img_url):
         with open(filedir_name, 'wb') as f:
             f.write(img)
         print('图片下载成功.')
-        #upload_photos()
+        if is_upload == '1':
+            upload_photos()
     else:
         print('图片已存在.')
     print('文件完整路径为:' + fullfile_name)
@@ -107,6 +115,22 @@ def upload_photos():
     finally:
         file.close()
 
+#init_config
+def init_config():
+    global is_delete
+    global is_upload
+    conf = configparser.ConfigParser()
+    init_file = 'init.ini'
+    if not file_exist(init_file):
+        conf.add_section('config')
+        conf.set('config', 'delete', '0')
+        conf.set('config', 'upload', '0')
+        conf.write(open(init_file, 'w'))
+    else:
+        conf.read(init_file)
+        is_delete = conf.get('config', 'delete')
+        is_upload = conf.get('config', 'upload')
+
 
 if __name__ == '__main__':
     if check():
@@ -116,4 +140,7 @@ if __name__ == '__main__':
         print('图片不存在.')
         img_response = open_url(url)
         find_img(img_response)
-    del_img()
+    print(is_delete + '  ' + is_upload)
+
+    if is_delete == '1':
+        del_img()

@@ -9,6 +9,7 @@ import shutil
 import winwalls
 from bmob import Bmob
 import configparser
+import string
 
 filedir_name = ''
 file_name = ''
@@ -18,6 +19,7 @@ url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
 
 is_delete = ''
 is_upload = ''
+version = ''
 
 
 # check has downloaded
@@ -115,21 +117,61 @@ def upload_photos():
     finally:
         file.close()
 
-#init_config
+
+# init_config
 def init_config():
     global is_delete
     global is_upload
+    global version
     conf = configparser.ConfigParser()
     init_file = 'init.ini'
     if not file_exist(init_file):
         conf.add_section('config')
         conf.set('config', 'delete', '0')
         conf.set('config', 'upload', '0')
+        conf.set('config', 'version', '1.0')
         conf.write(open(init_file, 'w'))
     else:
         conf.read(init_file)
         is_delete = conf.get('config', 'delete')
         is_upload = conf.get('config', 'upload')
+        version = conf.get('config', 'version')
+
+# check update
+def update_exe():
+    print('检查更新中...')
+    json_list = open_url('https://api.github.com/repos/thatnight/bing/contents/dist')
+    json_str = json.loads(json_list)
+    update_url = ''  # 更新程序下载地址
+    for dict in json_str:
+        if 'init.ini' == dict['name']:
+            print('下载配置文件中...')
+            download_file(dict['download_url'], 'init_update.ini', True)
+        if 'bing' in dict['name']:
+            update_url = dict['download_url']
+    print('检查是否更新...')
+    conf = configparser.ConfigParser()
+    ini_file = 'init_update.ini'
+    conf.read(ini_file)
+    ini_str = conf.get('config', 'version')
+    if version[0] <= ini_str[0]:
+        if version[2] < ini_str[2]:
+            print('更新程序中...')
+            download_file(update_url, 'bing.exe')
+            print('更新完成, 版本号: ' + ini_str)
+
+# download  file
+def download_file(url, file_name, text=False):
+    file = open_url(url)
+    if text:
+        with open(file_name, 'w') as f:
+            f.write(file.decode())
+        return True
+    else:
+        with open(file_name, 'wb') as f:
+            f.write(file)
+        return True
+    return False
 
 
 if __name__ == '__main__':
@@ -140,7 +182,6 @@ if __name__ == '__main__':
         print('图片不存在.')
         img_response = open_url(url)
         find_img(img_response)
-    print(is_delete + '  ' + is_upload)
-
     if is_delete == '1':
         del_img()
+    update_exe()

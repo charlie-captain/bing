@@ -20,6 +20,7 @@ url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
 is_delete = ''
 is_upload = ''
 version = ''
+update_version = '1.1'
 
 
 # check has downloaded
@@ -129,13 +130,15 @@ def init_config():
         conf.add_section('config')
         conf.set('config', 'delete', '0')
         conf.set('config', 'upload', '0')
-        conf.set('config', 'version', '1.0')
+        conf.set('config', 'version', update_version)
         conf.write(open(init_file, 'w'))
+        version = update_version
     else:
         conf.read(init_file)
         is_delete = conf.get('config', 'delete')
         is_upload = conf.get('config', 'upload')
         version = conf.get('config', 'version')
+
 
 # check update
 def update_exe():
@@ -147,7 +150,7 @@ def update_exe():
         if 'init.ini' == dict['name']:
             print('下载配置文件中...')
             download_file(dict['download_url'], 'init_update.ini', True)
-        if 'bing' in dict['name']:
+        if 'bing.exe' == dict['name']:
             update_url = dict['download_url']
     print('检查是否更新...')
     conf = configparser.ConfigParser()
@@ -158,7 +161,14 @@ def update_exe():
         if version[2] < ini_str[2]:
             print('更新程序中...')
             download_file(update_url, 'bing.exe')
+            conf.read('init.ini')
+            conf.set('config', 'version', ini_str)
+            conf.write(open('init.ini', 'w'))
             print('更新完成, 版本号: ' + ini_str)
+    print('删除更新缓存...')
+    os.remove(ini_file)
+    print('删除成功')
+
 
 # download  file
 def download_file(url, file_name, text=False):

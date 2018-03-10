@@ -20,7 +20,8 @@ url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
 is_delete = ''
 is_upload = ''
 version = ''
-update_version = '1.1'
+update_version = '1.2'
+network_state = -1
 
 
 # check has downloaded
@@ -97,7 +98,7 @@ def del_img():
     dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
     # print(dirs)
     for dir in dirs:
-        if dir == '.git' or dir == '.idea' or dir == 'bmob':
+        if dir == '.git' or dir == '.idea' or dir == 'bmob' or dir == 'dist':
             continue
         if dir != now_date:
             shutil.rmtree(dir)
@@ -157,6 +158,7 @@ def update_exe():
     ini_file = 'init_update.ini'
     conf.read(ini_file)
     ini_str = conf.get('config', 'version')
+    is_update=False
     if version[0] <= ini_str[0]:
         if version[2] < ini_str[2]:
             print('更新程序中...')
@@ -164,7 +166,11 @@ def update_exe():
             conf.read('init.ini')
             conf.set('config', 'version', ini_str)
             conf.write(open('init.ini', 'w'))
-            print('更新完成, 版本号: ' + ini_str)
+            is_update=True
+    if is_update:
+        print('更新完成, 版本号: ' + ini_str)
+    else:
+        print('程序未更新')
     print('删除更新缓存...')
     os.remove(ini_file)
     print('删除成功')
@@ -183,6 +189,15 @@ def download_file(url, file_name, text=False):
         return True
     return False
 
+# check the network
+def checkNetwork():
+    global network_state
+    if network_state != 0:
+        network_state = os.system('ping www.baidu.com')
+    if network_state == 0:
+        return True
+    return False
+
 
 if __name__ == '__main__':
     if check():
@@ -190,8 +205,11 @@ if __name__ == '__main__':
         refresh_desktop()
     else:
         print('图片不存在.')
-        img_response = open_url(url)
-        find_img(img_response)
+        if checkNetwork():
+            img_response = open_url(url)
+            find_img(img_response)
+            update_exe()
+        else:
+            print('网络连接失败, 请检查连接.')
     if is_delete == '1':
         del_img()
-    update_exe()

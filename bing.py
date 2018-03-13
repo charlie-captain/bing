@@ -1,5 +1,6 @@
 # 下载每日必应壁纸
 import urllib.request
+import requests
 import json
 import time
 import win32con
@@ -10,6 +11,10 @@ import winwalls
 from bmob import Bmob
 import configparser
 import string
+import subprocess
+import traceback
+from contextlib import closing
+import progressbar
 
 filedir_name = ''
 file_name = ''
@@ -20,7 +25,7 @@ url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
 is_delete = ''
 is_upload = ''
 version = ''
-update_version = '1.2'
+update_version = '1.3'  # update version
 network_state = -1
 
 
@@ -158,15 +163,16 @@ def update_exe():
     ini_file = 'init_update.ini'
     conf.read(ini_file)
     ini_str = conf.get('config', 'version')
-    is_update=False
+    is_update = False
+    print('最新版本: ' + ini_str)
+    print('当前版本: ' + version)
     if version[0] <= ini_str[0]:
         if version[2] < ini_str[2]:
             print('更新程序中...')
-            download_file(update_url, 'bing.exe')
-            conf.read('init.ini')
-            conf.set('config', 'version', ini_str)
-            conf.write(open('init.ini', 'w'))
-            is_update=True
+            download_progress(update_url, 'bing.exe')
+            os.remove('init.ini')
+            os.rename(ini_file, 'init.ini')
+            is_update = True
     if is_update:
         print('更新完成, 版本号: ' + ini_str)
     else:
@@ -174,6 +180,25 @@ def update_exe():
     print('删除更新缓存...')
     os.remove(ini_file)
     print('删除成功')
+
+
+def download_progress(url, file_name):
+    count = 0
+    with closing(requests.get(url, stream=True)) as r:
+        per_size = 1024
+        file_size = int(r.headers['content-length'])
+        # progress = ProgressBar(file_name, total=file_size,
+        #                        unit='KB', chunk_size=per_size
+        #                        , run_status='正在下载', fin_status='下载完成')
+        with open(file_name, 'wb') as f:
+            for data in r.iter_content(chunk_size=per_size):
+                f.write(data)
+                count = count + per_size
+                next = str(round(count / file_size * 100, 2)) + ' %'
+                print(next)
+                # progressbar.ProgressBar(len(data))
+                # time.sleep(0.01)
+                # progress.refresh(count=len(data))
 
 
 # download  file
@@ -189,27 +214,32 @@ def download_file(url, file_name, text=False):
         return True
     return False
 
+
 # check the network
 def checkNetwork():
     global network_state
     if network_state != 0:
-        network_state = os.system('ping www.baidu.com')
+        network_state = subprocess.call('ping www.baidu.com', shell=True)
+        print(network_state)
     if network_state == 0:
         return True
     return False
 
 
 if __name__ == '__main__':
-    if check():
-        print('图片已下载，路径为: ' + fullfile_name)
-        refresh_desktop()
-    else:
-        print('图片不存在.')
-        if checkNetwork():
-            img_response = open_url(url)
-            find_img(img_response)
-            update_exe()
+    try:
+        if check():
+            print('图片已下载，路径为: ' + fullfile_name)
+            refresh_desktop()
         else:
-            print('网络连接失败, 请检查连接.')
-    if is_delete == '1':
-        del_img()
+            print('图片不存在.')
+            if checkNetwork():
+                img_response = open_url(url)
+                find_img(img_response)
+                update_exe()
+            else:
+                print('网络连接失败, 请检查连接.')
+        if is_delete == '1':
+            del_img()
+    except:
+        traceback.print_exc()

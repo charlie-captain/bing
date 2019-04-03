@@ -185,7 +185,8 @@
     这里就不详细说明了详情可以找下度娘, github已经设置好了,只是需要你们去设置下运行的路径.
     
     好了,今天就到这了
-    
-### Github
-- [https://github.com/thatnight/bing](https://github.com/thatnight/bing)
+
+### Pull Requests
+
+如果你有好的方法，可以参与到项目中来，因为bmob开放，所以大家可以做一个图库来获取bing的所有图片。
 

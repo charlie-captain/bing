@@ -3,6 +3,8 @@ import urllib.request
 import requests
 import json
 import time
+
+import win32api
 import win32con
 import win32gui
 import os
@@ -24,6 +26,7 @@ url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
 
 is_delete = ''
 is_upload = ''
+is_auto_run = ''
 version = ''
 update_version = '1.3'  # update version
 network_state = -1
@@ -130,19 +133,22 @@ def init_config():
     global is_delete
     global is_upload
     global version
+    global is_auto_run
     conf = configparser.ConfigParser()
     init_file = 'init.ini'
     if not file_exist(init_file):
         conf.add_section('config')
         conf.set('config', 'delete', '0')
-        conf.set('config', 'upload', '0')
+        conf.set('config', 'upload', '1')
+        conf.set('config', 'auto_run', '1')
         conf.set('config', 'version', update_version)
         conf.write(open(init_file, 'w'))
         version = update_version
     else:
         conf.read(init_file)
-        is_delete = conf.get('config', 'delete')
-        is_upload = conf.get('config', 'upload')
+        is_delete = conf.get('config', 'delete', fallback='0')
+        is_upload = conf.get('config', 'upload', fallback='1')
+        is_auto_run = conf.get('config', 'auto_run', fallback='1')
         version = conf.get('config', 'version')
 
 
@@ -226,6 +232,25 @@ def checkNetwork():
     return False
 
 
+def autoRun():
+    name = 'bing'  # 要添加的项值名称
+    path = os.getcwd() + '\\' + 'bing.exe'  # 要添加的exe路径
+    # 注册表项名
+    KeyName = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+    print('自启动程序路径: ' + path)
+    if not file_exist(path):
+        print('程序不存在, 无法添加自启动')
+        return
+    # 异常处理
+    try:
+        key = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, KeyName, 0, win32con.KEY_ALL_ACCESS)
+        win32api.RegSetValueEx(key, name, 0, win32con.REG_SZ, path)
+        win32api.RegCloseKey(key)
+    except:
+        print('添加失败')
+    print('添加成功！')
+
+
 if __name__ == '__main__':
     try:
         if check():
@@ -241,5 +266,9 @@ if __name__ == '__main__':
                 print('网络连接失败, 请检查连接.')
         if is_delete == '1':
             del_img()
+
+        # 每次都将自己加入自启动
+        if is_auto_run == '1':
+            autoRun()
     except:
         traceback.print_exc()

@@ -28,7 +28,7 @@ is_delete = ''
 is_upload = ''
 is_auto_run = ''
 version = ''
-update_version = '1.3'  # update version
+update_version = '1.4'  # update version
 network_state = -1
 
 

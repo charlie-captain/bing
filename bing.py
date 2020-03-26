@@ -1,22 +1,20 @@
 # 下载每日必应壁纸
-import urllib.request
-import requests
+import configparser
 import json
+import os
+import shutil
+import subprocess
 import time
+import traceback
+import urllib.request
+from contextlib import closing
 
+import requests
 import win32api
 import win32con
 import win32gui
-import os
-import shutil
-import winwalls
+
 from bmob import Bmob
-import configparser
-import string
-import subprocess
-import traceback
-from contextlib import closing
-import progressbar
 
 filedir_name = ''
 file_name = ''
@@ -28,7 +26,8 @@ is_delete = ''
 is_upload = ''
 is_auto_run = ''
 version = ''
-update_version = '1.4'  # update version
+update_version = 1.5
+# update version
 network_state = -1
 
 
@@ -155,38 +154,22 @@ def init_config():
 # check update
 def update_exe():
     print('检查更新中...')
-    json_list = open_url('https://api.github.com/repos/thatnight/bing/contents/dist')
+    json_list = open_url('https://raw.githubusercontent.com/charlie-captain/bing/master/release')
+    print(json_list)
     json_str = json.loads(json_list)
-    update_url = ''  # 更新程序下载地址
-    for dict in json_str:
-        if 'init.ini' == dict['name']:
-            print('下载配置文件中...')
-            download_file(dict['download_url'], 'init_update.ini', True)
-        if 'bing.exe' == dict['name']:
-            update_url = dict['download_url']
+    update_url = json_str['url']  # 更新程序下载地址
+    new_version = json_str['version']
     print('检查是否更新...')
-    conf = configparser.ConfigParser()
-    ini_file = 'init_update.ini'
-    conf.read(ini_file)
-    ini_str = conf.get('config', 'version')
     is_update = False
-    print('最新版本: ' + ini_str)
-    print('当前版本: ' + version)
-    if version[0] <= ini_str[0]:
-        if version[2] < ini_str[2]:
-            print('更新程序中...')
-            download_progress(update_url, 'bing.exe')
-            os.remove('init.ini')
-            os.rename(ini_file, 'init.ini')
-            is_update = True
+    print('最新版本: ' + str(new_version))
+    print('当前版本: ' + str(version))
+    if new_version > float(version):
+        download_progress(update_url, 'bing.exe')
+        is_update = True
     if is_update:
-        print('更新完成, 版本号: ' + ini_str)
+        print('更新完成, 版本号: ' + str(new_version))
     else:
         print('程序未更新')
-    print('删除更新缓存...')
-    os.remove(ini_file)
-    print('删除成功')
-
 
 def download_progress(url, file_name):
     count = 0
@@ -224,10 +207,11 @@ def download_file(url, file_name, text=False):
 # check the network
 def checkNetwork():
     global network_state
+    print("检查网络状态")
     if network_state != 0:
         network_state = subprocess.call('ping www.baidu.com', shell=True)
-        print(network_state)
     if network_state == 0:
+        print("网络状态正常")
         return True
     return False
 
@@ -258,15 +242,14 @@ if __name__ == '__main__':
             refresh_desktop()
         else:
             print('图片不存在.')
-            if checkNetwork():
-                img_response = open_url(url)
-                find_img(img_response)
-                update_exe()
-            else:
-                print('网络连接失败, 请检查连接.')
+            print('网络状态 ' + str(network_state))
+            while network_state != 0:
+                checkNetwork()
+            img_response = open_url(url)
+            find_img(img_response)
+            update_exe()
         if is_delete == '1':
             del_img()
-
         # 每次都将自己加入自启动
         if is_auto_run == '1':
             autoRun()

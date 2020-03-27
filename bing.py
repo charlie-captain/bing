@@ -14,19 +14,23 @@ import win32api
 import win32con
 import win32gui
 
+import chrome
 from bmob import Bmob
 
 filedir_name = ''
 file_name = ''
 fullfile_name = ''
 dir_name = ''
-url = 'http://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1'
+url = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&nc=1585280936631&pid=hp&mkt=zh-CN&video=1&uhd=1&uhdwidth=3360&uhdheight=1890'
 
-is_delete = ''
-is_upload = ''
-is_auto_run = ''
-version = ''
-update_version = 1.5
+source = '0'
+is_delete = '1'
+is_upload = '1'
+is_auto_run = '1'
+version = '0'
+update_version = '1.5'
+# 强制刷新
+force_update = '1'
 # update version
 network_state = -1
 
@@ -47,6 +51,7 @@ def check():
     init_config()
     if file_exist(filedir_name):
         return True
+    print('图片不存在.')
     return False
 
 
@@ -60,27 +65,27 @@ def open_url(url):
 
 
 # download image
-def find_img(response_html):
+def deal_bing(response_html):
     print('正在下载图片...')
     jsons = json.loads(response_html)
     img_dict = jsons['images']
     img = img_dict[0]
-    if img['url']:
-        save_img(img['url'])
+    return 'http://cn.bing.com' + img['url']
 
 
 # save picture
-def save_img(img_url):
-    url_pic = 'http://cn.bing.com' + img_url
-    img = open_url(url_pic)
-    if img and not file_exist(filedir_name):
+def download_img(img_url):
+    print('图片下载地址 ' + img_url)
+    img = open_url(img_url)
+    if file_exist(filedir_name):
+        os.remove(filedir_name)
+
+    if img:
         with open(filedir_name, 'wb') as f:
             f.write(img)
         print('图片下载成功.')
-        if is_upload == '1':
+        if is_upload == 1:
             upload_photos()
-    else:
-        print('图片已存在.')
     print('文件完整路径为:' + fullfile_name)
     refresh_desktop()  # 存不存在都要更换壁纸
 
@@ -133,6 +138,8 @@ def init_config():
     global is_upload
     global version
     global is_auto_run
+    global source
+    global force_update
     conf = configparser.ConfigParser()
     init_file = 'init.ini'
     if not file_exist(init_file):
@@ -140,15 +147,19 @@ def init_config():
         conf.set('config', 'delete', '0')
         conf.set('config', 'upload', '1')
         conf.set('config', 'auto_run', '1')
-        conf.set('config', 'version', update_version)
+        conf.set('config', 'version', str(update_version))
+        conf.set('config', 'source', '1')
+        conf.set('config', 'force_update', '1')
         conf.write(open(init_file, 'w'))
         version = update_version
     else:
         conf.read(init_file)
-        is_delete = conf.get('config', 'delete', fallback='0')
-        is_upload = conf.get('config', 'upload', fallback='1')
-        is_auto_run = conf.get('config', 'auto_run', fallback='1')
-        version = conf.get('config', 'version')
+        is_delete = conf.get('config', 'delete', fallback=is_delete)
+        is_upload = conf.get('config', 'upload', fallback=is_upload)
+        is_auto_run = conf.get('config', 'auto_run', fallback=is_auto_run)
+        source = conf.get('config', 'source', fallback=source)
+        version = conf.get('config', 'version', fallback=update_version)
+        force_update = conf.get('config', 'force_update', fallback=force_update)
 
 
 # check update
@@ -170,6 +181,7 @@ def update_exe():
         print('更新完成, 版本号: ' + str(new_version))
     else:
         print('程序未更新')
+
 
 def download_progress(url, file_name):
     count = 0
@@ -235,18 +247,37 @@ def autoRun():
     print('添加成功！')
 
 
+def open_bing_url():
+    print('通过bing壁纸源更新...')
+    api_url = url
+    api_response = open_url(api_url)
+    print(api_response)
+    return deal_bing(api_response)
+
+
+# 根据配置获取不同的数据源
+def check_img_url():
+    download_url = ''
+    if source == '0':
+        download_url = open_bing_url()
+    else:
+        download_url = chrome.open_chrome_url()
+    if download_url:
+        download_img(download_url)
+    else:
+        print('图片下载链接出错')
+
+
 if __name__ == '__main__':
     try:
-        if check():
+        if check() and force_update == '0':
             print('图片已下载，路径为: ' + fullfile_name)
             refresh_desktop()
         else:
-            print('图片不存在.')
             print('网络状态 ' + str(network_state))
             while network_state != 0:
                 checkNetwork()
-            img_response = open_url(url)
-            find_img(img_response)
+            check_img_url()
             update_exe()
         if is_delete == '1':
             del_img()

@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import threading
 import time
 import traceback
 import urllib.request
@@ -16,6 +17,7 @@ import win32gui
 
 import chrome
 from bmob import Bmob
+from unsplash import UnsplashSpider
 
 filedir_name = ''
 file_name = ''
@@ -244,6 +246,7 @@ def autoRun():
         win32api.RegCloseKey(key)
     except:
         print('添加失败')
+        return
     print('添加成功！')
 
 
@@ -260,15 +263,41 @@ def check_img_url():
     download_url = ''
     if source == '0':
         download_url = open_bing_url()
-    else:
+    elif source == '1':
         download_url = chrome.open_chrome_url()
+    else:
+        download_url = UnsplashSpider().getImage()
     if download_url:
         download_img(download_url)
     else:
         print('图片下载链接出错')
 
 
-if __name__ == '__main__':
+def add_to_menu():
+    parent_name = 'WallPaper'  # 要添加的项值名称
+    path = '更换壁纸'  # 要添加的exe路径
+    # 注册表项名
+    parent = r"*\shell"
+    child = parent + '\\' + parent_name
+    child_path = os.getcwd() + '\\' + 'bing.exe'  # 要添加的exe路径
+    print('快捷菜单程序路径: ' + child_path)
+    if not file_exist(child_path):
+        print('程序不存在, 无法添加快捷菜单')
+        return
+    # 异常处理
+    try:
+        key = win32api.RegOpenKey(win32con.HKEY_CLASSES_ROOT, parent, 0, win32con.KEY_ALL_ACCESS)
+        win32api.RegSetValueEx(key, parent_name, 0, win32con.REG_SZ, path)
+        win32api.RegCreateKeyEx(key, 'command', 0, win32con.REG_SZ, child_path)
+        win32api.RegCloseKey(key)
+    except:
+        traceback.print_exc()
+        print('添加失败')
+        return
+    print('添加成功！')
+
+
+def main():
     try:
         if check() and force_update == '0':
             print('图片已下载，路径为: ' + fullfile_name)
@@ -286,3 +315,9 @@ if __name__ == '__main__':
             autoRun()
     except:
         traceback.print_exc()
+
+
+if __name__ == '__main__':
+    t = threading.Thread(target=main, name='changeWalls')
+    t.start()
+    t.join()

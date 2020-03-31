@@ -1,8 +1,6 @@
 import json
 import random
 
-from bing import open_url
-
 url_360 = 'http://wallpaper.apc.360.cn/index.php?c=WallPaper&a=getAppsByOrder&order=create_time&start=0&count={0}&from=360chrome'
 
 count = 50
@@ -11,6 +9,7 @@ count = 50
 def open_chrome_url():
     print('通过360壁纸源更新...')
     api_url = url_360.format(str(count))
+    from bing import open_url
     api_response = open_url(api_url)
     return deal_response(api_response)
 
